@@ -34,20 +34,28 @@ int port = 1883;
 char topic[] = "try/table_7/carlyn";
 char clientID[] = "voice01";
 
+char topicA[] = "try/table_7/random";
 // last time the client sent a message, in ms:
 long lastTimeSentA = 0;
 // message sending interval:
 int intervalA = 10000;
 
+char topicB[] = "try/table_7/scales";
 // last time the client sent a message, in ms:
 long lastTimeSentB = 0;
 // message sending interval:
 int intervalB = 3000;
 
+char topicC[] = "try/table_7/poem";
 // last time the client sent a message, in ms:
 long lastTimeSentC = 0;
 // message sending interval:
 int intervalC = 11000;
+
+const int lineLengthOfPoem = 4;
+String lines[lineLengthOfPoem] = { "The lamp once out", "Cool stars enter", "The window frame.", "- Natsume Soseki" };
+int lineInterval[lineLengthOfPoem] = { 10000, 5000, 7000, 50000 };
+int whichLine = 0;
 
 
 int incrementTone = 0;
@@ -95,7 +103,7 @@ void loop() {
   // once every interval, send a message:
   if (millis() - lastTimeSentA > intervalA) {
     // start a new message on the topic:
-    mqttClient.beginMessage(topic);
+    mqttClient.beginMessage(topicA);
     // add a random number as a numeric string (print(), not write()):
     mqttClient.print(random(127));
     //readVoice();
@@ -107,7 +115,7 @@ void loop() {
 
     if (millis() - lastTimeSentB > intervalB) {
     // start a new message on the topic:
-    mqttClient.beginMessage(topic);
+    mqttClient.beginMessage(topicB);
     // add a random number as a numeric string (print(), not write()):
     mqttClient.print(incrementTone);
     //Serial.print(incrementTone);
@@ -123,11 +131,17 @@ void loop() {
   }
 
 
-      if (millis() - lastTimeSentC > intervalC) {
+      if (millis() - lastTimeSentC > lineInterval[whichLine]) {
     // start a new message on the topic:
-    mqttClient.beginMessage(topic);
+    mqttClient.beginMessage(topicC);
     // add a random number as a numeric string (print(), not write()):
-    mqttClient.print("The lamp once out | Cool stars enter | The window frame. - Natsume Soseki");
+    mqttClient.print(lines[whichLine]);
+    Serial.println(lines[whichLine]);
+     whichLine = whichLine + 1;
+    if (whichLine > (lineLengthOfPoem -1) ) {
+      whichLine = 0;
+    }
+
     // send the message:
     mqttClient.endMessage();
     lastTimeSentC = millis();
