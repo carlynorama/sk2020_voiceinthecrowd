@@ -44,6 +44,11 @@ long lastTimeSentB = 0;
 // message sending interval:
 int intervalB = 3000;
 
+// last time the client sent a message, in ms:
+long lastTimeSentC = 0;
+// message sending interval:
+int intervalC = 11000;
+
 
 int incrementTone = 0;
 int incrementToneMax = 127;
@@ -105,7 +110,7 @@ void loop() {
     mqttClient.beginMessage(topic);
     // add a random number as a numeric string (print(), not write()):
     mqttClient.print(incrementTone);
-    Serial.print(incrementTone);
+    //Serial.print(incrementTone);
     incrementTone = incrementTone + nextToneStep;
     if (incrementTone >= incrementToneMax) {
       nextToneStep = -1;
@@ -115,6 +120,17 @@ void loop() {
     // send the message:
     mqttClient.endMessage();
     lastTimeSentB = millis();
+  }
+
+
+      if (millis() - lastTimeSentC > intervalC) {
+    // start a new message on the topic:
+    mqttClient.beginMessage(topic);
+    // add a random number as a numeric string (print(), not write()):
+    mqttClient.print("The lamp once out | Cool stars enter | The window frame. - Natsume Soseki");
+    // send the message:
+    mqttClient.endMessage();
+    lastTimeSentC = millis();
   }
 
 }
