@@ -31,13 +31,24 @@ MqttClient mqttClient(wifi);
 // details for MQTT client:
 char broker[] = "broker.shiftr.io";
 int port = 1883;
-char topic[] = "try/table_7";
+char topic[] = "try/table_7/carlyn";
 char clientID[] = "voice01";
 
 // last time the client sent a message, in ms:
-long lastTimeSent = 0;
+long lastTimeSentA = 0;
 // message sending interval:
-int interval = 10000;
+int intervalA = 10000;
+
+// last time the client sent a message, in ms:
+long lastTimeSentB = 0;
+// message sending interval:
+int intervalB = 3000;
+
+
+int incrementTone = 0;
+int incrementToneMax = 127;
+int incrementToneMin = 0;
+int nextToneStep = 1;
 
 void setup() {
   // initialize serial:
@@ -77,7 +88,7 @@ void loop() {
   }
 
   // once every interval, send a message:
-  if (millis() - lastTimeSent > interval) {
+  if (millis() - lastTimeSentA > intervalA) {
     // start a new message on the topic:
     mqttClient.beginMessage(topic);
     // add a random number as a numeric string (print(), not write()):
@@ -86,7 +97,24 @@ void loop() {
     //Serial.println(myVoice);
     // send the message:
     mqttClient.endMessage();
-    lastTimeSent = millis();
+    lastTimeSentA = millis();
+  }
+
+    if (millis() - lastTimeSentB > intervalB) {
+    // start a new message on the topic:
+    mqttClient.beginMessage(topic);
+    // add a random number as a numeric string (print(), not write()):
+    mqttClient.print(incrementTone);
+    Serial.print(incrementTone);
+    incrementTone = incrementTone + nextToneStep;
+    if (incrementTone >= incrementToneMax) {
+      nextToneStep = -1;
+    } else if (incrementTone <= incrementToneMin) {
+      nextToneStep = 1;
+    }
+    // send the message:
+    mqttClient.endMessage();
+    lastTimeSentB = millis();
   }
 
 }
