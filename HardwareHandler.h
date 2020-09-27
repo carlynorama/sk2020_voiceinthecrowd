@@ -1,10 +1,37 @@
-//uint8_t myVoice;
-const int nose = 0;  //A0 input
+#include "MQTT_MessagePackagerDefs.h"
+//20*5*number
+//20Hz - 655Hz
 
+
+//---------------------------------  NOSE
 const int pushButton = 4;
 const bool trueState = LOW;
 bool buttonState = false;
 
+//---------------------------------  HUNGER
+const int hungerPin = 0;  //A0 input
+
+//String getValueForMessage(int sensorPin) {
+//  int val = analogRead(sensorPin);
+//  //return "dial it in";
+//  return String((uint8_t) (map(val, 0, 1023, 0, 127)));
+//}
+
+String getHungerValueForMessage() {
+  int val = analogRead(hungerPin);
+  return String((uint8_t) (map(val, 0, 1023, 0, 127)));
+}
+
+//---------------------------------  HUNGER OBJECT
+MQTT_Object hungerMessageObject = {
+  .lastTimeSent = 0,
+  .interval = 3000,
+  .getMessage = getHungerValueForMessage,
+   {.tag = "try/table_7/feelingsPotato/hunger"}
+};
+
+
+//---------------------------------  FOLICLES
 const int folicleCount = 4;
 const int folicle1 = 7;  //A0 input
 const int folicle2 = 6;  //A0 input
@@ -14,8 +41,7 @@ const int folicle4 = 4;  //A0 input
 int folicles[folicleCount] = { folicle1, folicle2, folicle3, folicle4 };
 int folicleReadings[folicleCount] = { 0, 0, 0, 0 };
 
-//20*5*number
-//20Hz - 655Hz
+
 
 void checkButton() {
   if (trueState == digitalRead(pushButton)) {
@@ -77,8 +103,14 @@ void printFolicleAverage() {
     }
 }
 
-//String getValueForMessage() {
-//  int val = analogRead(nose);
-//  //return "dial it in";
-//  return String((uint8_t) (map(val, 0, 1023, 0, 127)));
-//}
+String getStrokeValueForMessage() {
+  return String(int(averageFolicleData()));
+}
+
+//---------------------------------  FOLICLE OBJECT
+MQTT_Object strokeMessageObject = {
+  .lastTimeSent = 0,
+  .interval = 5000,
+  .getMessage = getStrokeValueForMessage,
+   {.tag = "try/table_7/feelingsPotato/stroke"}
+};

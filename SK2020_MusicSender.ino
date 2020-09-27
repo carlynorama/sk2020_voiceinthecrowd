@@ -12,8 +12,8 @@
   #define SECRET_MQTT_PASS "" // broker password
 
 
-  Edited 2020 09 25
-  Sketching in Hardware
+  Edited 2020 09 25 
+  Sketching in Hardware 
   by Carlyn Maw
 
   New code sends various types of messages.
@@ -22,6 +22,7 @@
 #include <WiFiNINA.h>
 #include <ArduinoMqttClient.h>
 #include "arduino_secrets.h"
+#include "MQTT_MessagePackagerDefs.h"
 #include "HardwareHandler.h"
 
 // initialize WiFi connection:
@@ -34,15 +35,7 @@ int port = 1883;
 //char topicRoot[] = "try/table_7/";
 char clientID[] = "voice01";
 
-// define a new type that is a function pointer
-typedef String (*messsage_function)(void);
-
-struct MQTT_Object {
-  long lastTimeSent;
-  int interval;
-  messsage_function getMessage;
-  char tag[];
-};
+//--------------------------------------------- MQTT_MessagePackager
 
 void sendMQTTObject(MQTT_Object* mqtto) {
     if (millis() - mqtto->lastTimeSent > mqtto->interval) {
@@ -55,28 +48,10 @@ void sendMQTTObject(MQTT_Object* mqtto) {
   }
 }
 
-
-
-//-------------------------------------   POTENTIOMETER, SIMPLE
-const int voiceSensor = 0;
-
-String getValueForMessage() {
-  int val = analogRead(voiceSensor);
-  return String((uint8_t) (map(val, 0, 1023, 0, 127)));
-}
-
-MQTT_Object potMessageObject = {
-  .lastTimeSent = 0,
-  .interval = 3000,
-  .getMessage = getValueForMessage,
-   {.tag = "try/table_7/carlyn/dial"}
-};
-
-
 //----------------------------------------------------   SETUP
 void setup() {
   pinMode(pushButton, INPUT);
-
+  
   // initialize serial:
   Serial.begin(9600);
   // wait for serial monitor to open:
@@ -110,7 +85,7 @@ void setup() {
 //----------------------------------------------------   LOOP
 void loop() {
 
-  //-------------------------------------  Read Binary Hardware
+  //-------------------------------------  Read Binary Hardware 
   checkButton();
 
   //-------------------------------------  Read Analog Hardware
@@ -124,7 +99,7 @@ void loop() {
       Serial.println(" ");
     }
 
-
+    
 
   //-------------------------------------  Update Remote World
   // if not connected to the broker, try to connect:
@@ -135,12 +110,13 @@ void loop() {
 
 //  sendMQTTObject(&randomMessageObject);
 //  sendMQTTObject(&scaleToneMessageObject);
-//
+//      
 //  updatePoemLine();
 //  updatePoemLineInterval(&poemMessageObject);
 //  sendMQTTObject(&poemMessageObject);
 
-//  sendMQTTObject(&potMessageObject);
+    sendMQTTObject(&hungerMessageObject);
+    sendMQTTObject(&strokeMessageObject);
 
 }
 
