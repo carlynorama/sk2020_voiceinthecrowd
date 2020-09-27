@@ -122,6 +122,20 @@ MQTT_Object poemMessageObject = {
    {.tag = "try/table_7/poem"}
 };
 
+//-------------------------------------   POTENTIOMETER, SIMPLE
+const int voiceSensor = 0;
+
+String getValueForMessage() {
+  int val = analogRead(voiceSensor);
+  return String((uint8_t) (map(val, 0, 1023, 0, 127)));
+}
+
+MQTT_Object potMessageObject = {
+  .lastTimeSent = 0,
+  .interval = 3000,
+  .getMessage = getValueForMessage,
+   {.tag = "try/table_7/carlyn/dial"}
+};
 
 
 //----------------------------------------------------   SETUP
@@ -170,6 +184,8 @@ void loop() {
   updatePoemLine();
   updatePoemLineInterval(&poemMessageObject);
   sendMQTTObject(&poemMessageObject);
+
+  sendMQTTObject(&potMessageObject);
 
 }
 
