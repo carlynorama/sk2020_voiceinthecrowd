@@ -12,8 +12,8 @@
   #define SECRET_MQTT_PASS "" // broker password
 
 
-  Edited 2020 09 25 
-  Sketching in Hardware 
+  Edited 2020 09 25
+  Sketching in Hardware
   by Carlyn Maw
 
   New code sends various types of messages.
@@ -76,7 +76,7 @@ MQTT_Object potMessageObject = {
 //----------------------------------------------------   SETUP
 void setup() {
   pinMode(pushButton, INPUT);
-  
+
   // initialize serial:
   Serial.begin(9600);
   // wait for serial monitor to open:
@@ -110,18 +110,19 @@ void setup() {
 //----------------------------------------------------   LOOP
 void loop() {
 
-  //Read Binary Hardware 
+  //-------------------------------------  Read Binary Hardware
+  checkButton();
 
-  //Read Analog Hardware
+  //-------------------------------------  Read Analog Hardware
 
-  //Update Local World
-    if (buttonState == LOW) {
+  //-------------------------------------  Update Local World
+    if (buttonState == true) {
       int newFolicleReading = readFolicle(folicle1);
       Serial.print("Loop reading 1: ");
       Serial.println(newFolicleReading);
     }
 
-  //Update Remote World
+  //-------------------------------------  Update Remote World
   // if not connected to the broker, try to connect:
   if (!mqttClient.connected()) {
     Serial.println("reconnecting");
@@ -130,7 +131,7 @@ void loop() {
 
 //  sendMQTTObject(&randomMessageObject);
 //  sendMQTTObject(&scaleToneMessageObject);
-//      
+//
 //  updatePoemLine();
 //  updatePoemLineInterval(&poemMessageObject);
 //  sendMQTTObject(&poemMessageObject);
