@@ -12,8 +12,8 @@
   #define SECRET_MQTT_PASS "" // broker password
 
 
-  Edited 2020 09 25 
-  Sketching in Hardware 
+  Edited 2020 09 25
+  Sketching in Hardware
   by Carlyn Maw
 
   New code sends various types of messages.
@@ -38,7 +38,7 @@ char clientID[] = "voice01";
 //--------------------------------------------- MQTT_MessagePackager
 
 void sendMQTTObject(MQTT_Object* mqtto) {
-    if (millis() - mqtto->lastTimeSent > mqtto->interval) {
+  if (millis() - mqtto->lastTimeSent > mqtto->interval) {
     // start a new message on the topic:
     mqttClient.beginMessage(mqtto->tag);
     // add a random number as a numeric string (print(), not write()):
@@ -50,8 +50,12 @@ void sendMQTTObject(MQTT_Object* mqtto) {
 
 //----------------------------------------------------   SETUP
 void setup() {
+  // pin settings
   pinMode(pushButton, INPUT);
-  
+  for (int thisPin = cillia4; thisPin <= cillia1; thisPin++) {
+    pinMode(thisPin, OUTPUT);
+  }
+
   // initialize serial:
   Serial.begin(9600);
   // wait for serial monitor to open:
@@ -85,21 +89,27 @@ void setup() {
 //----------------------------------------------------   LOOP
 void loop() {
 
-  //-------------------------------------  Read Binary Hardware 
+  //-------------------------------------  Read Binary Hardware
   checkButton();
 
   //-------------------------------------  Read Analog Hardware
   updateFolicleData();
 
   //-------------------------------------  Update Local World
-    if (buttonState == true) {
-      printFolicleData();
-      Serial.println("------");
-      printFolicleAverage();
-      Serial.println(" ");
-    }
 
-    
+  updateCilliaData();
+
+  if (buttonState == true) {
+    printFolicleData();
+    Serial.println("------");
+    printFolicleAverage();
+    Serial.println(" ");
+    printCiliaData();
+    Serial.println(" ");
+  }
+
+  updateCillia();
+
 
   //-------------------------------------  Update Remote World
   // if not connected to the broker, try to connect:
@@ -108,15 +118,15 @@ void loop() {
     connectToBroker();
   }
 
-//  sendMQTTObject(&randomMessageObject);
-//  sendMQTTObject(&scaleToneMessageObject);
-//      
-//  updatePoemLine();
-//  updatePoemLineInterval(&poemMessageObject);
-//  sendMQTTObject(&poemMessageObject);
+  //  sendMQTTObject(&randomMessageObject);
+  //  sendMQTTObject(&scaleToneMessageObject);
+  //
+  //  updatePoemLine();
+  //  updatePoemLineInterval(&poemMessageObject);
+  //  sendMQTTObject(&poemMessageObject);
 
-    sendMQTTObject(&hungerMessageObject);
-    sendMQTTObject(&strokeMessageObject);
+  sendMQTTObject(&hungerMessageObject);
+  sendMQTTObject(&strokeMessageObject);
 
 }
 

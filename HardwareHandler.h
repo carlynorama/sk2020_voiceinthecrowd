@@ -2,6 +2,9 @@
 //20*5*number
 //20Hz - 655Hz
 
+// ------------------------------------------------------
+// ---------------------------------------------- INPUTS
+// ------------------------------------------------------
 
 //---------------------------------  NOSE
 const int pushButton = 4;
@@ -33,10 +36,10 @@ MQTT_Object hungerMessageObject = {
 
 //---------------------------------  FOLICLES
 const int folicleCount = 4;
-const int folicle1 = 7;  //A0 input
-const int folicle2 = 6;  //A0 input
-const int folicle3 = 5;  //A0 input
-const int folicle4 = 4;  //A0 input
+const int folicle1 = 7;
+const int folicle2 = 6;
+const int folicle3 = 5;
+const int folicle4 = 4;
 
 int folicles[folicleCount] = { folicle1, folicle2, folicle3, folicle4 };
 int folicleReadings[folicleCount] = { 0, 0, 0, 0 };
@@ -60,7 +63,7 @@ int readFolicle(int folicle) {
   //  }
 
   int val = analogRead(folicle);
-  uint8_t reading = (uint8_t) (map(val, 0, 1023, 0, 127));
+  uint8_t reading = (uint8_t) (map(val, 0, 1023, 0, 255));
   //  if (Serial) {
   //    Serial.println(reading);
   //  }
@@ -104,7 +107,8 @@ void printFolicleAverage() {
 }
 
 String getStrokeValueForMessage() {
-  return String(int(averageFolicleData()));
+   uint8_t message = (uint8_t) (map(averageFolicleData(), 0, 255, 0, 127));
+  return String(message);
 }
 
 //---------------------------------  FOLICLE OBJECT
@@ -114,3 +118,36 @@ MQTT_Object strokeMessageObject = {
   .getMessage = getStrokeValueForMessage,
    {.tag = "try/table_7/feelingsPotato/stroke"}
 };
+
+// ------------------------------------------------------
+// ---------------------------------------------- OUTPUTS
+// ------------------------------------------------------
+
+//----------------------------------------------  CILIA
+const int cilliaCount = 4;
+const int cillia1 = 12;
+const int cillia2 = 11;
+const int cillia3 = 10;
+const int cillia4 = 9;
+
+int cillia[cilliaCount] = { cillia1, cillia2, cillia3, cillia4 };
+int cilliaLevels[cilliaCount] = { 0, 0, 0, 0 };
+
+void copyArray(int* src, int* dst, int len) {
+    memcpy(dst, src, sizeof(src[0])*len);
+}
+
+void updateCilliaData() {
+  copyArray(folicleReadings, cilliaLevels, cilliaCount);
+}
+
+void printCiliaData() {
+  for (int i = 0; i < cilliaCount; i++) {
+    if (Serial) {
+      Serial.print("cillia ");
+      Serial.print(i);
+      Serial.print(" val: ");
+      Serial.println(cilliaLevels[i]);
+    }
+  }
+}
