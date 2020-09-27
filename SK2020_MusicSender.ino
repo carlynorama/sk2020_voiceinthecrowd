@@ -114,16 +114,11 @@ void loop() {
   checkButton();
 
   //-------------------------------------  Read Analog Hardware
+  updateFolicleData();
 
   //-------------------------------------  Update Local World
     if (buttonState == true) {
-
-      int newFolicleReading = readFolicle(folicle1);
-      Serial.print("Loop reading 1: ");
-      Serial.println(newFolicleReading);
-      newFolicleReading = readFolicle(folicle2);
-      Serial.print("Loop reading 2: ");
-      Serial.println(newFolicleReading);
+      printFolicleData();
     }
 
   //-------------------------------------  Update Remote World
