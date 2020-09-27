@@ -1,11 +1,7 @@
 /*
-  MQTT Client sender
-
-  This sketch demonstrates an MQTT client that connects to a broker, subsrcibes to a topic,
-  and both listens for messages on that topic and sends messages to it, a random number between 0 and 15.
-  When the client receives a message, it parses it, and if the number matches the client's
-  number (myNumber, chosen arbitrarily), it sets an LED to full. When nothing is happening,
-  if the LED is not off, it's faded down one point every time through the loop.
+  Based on MQTT Client sender
+  created 11 June 2020
+  by Tom Igoe
 
   This sketch uses https://shiftr.io/try as the MQTT broker.
 
@@ -15,14 +11,17 @@
   #define SECRET_MQTT_USER "" // broker username
   #define SECRET_MQTT_PASS "" // broker password
 
-  created 11 June 2020
-  by Tom Igoe
+
+  Edited 2020 09 25
+  Sketching in Hardware
+  by Carlyn Maw
+
+  New code sends various types of messages.
 */
 
 #include <WiFiNINA.h>
 #include <ArduinoMqttClient.h>
 #include "arduino_secrets.h"
-#include "MidiHandler.h"
 
 // initialize WiFi connection:
 WiFiClient wifi;
@@ -31,38 +30,101 @@ MqttClient mqttClient(wifi);
 // details for MQTT client:
 char broker[] = "broker.shiftr.io";
 int port = 1883;
-char topic[] = "try/table_7/carlyn";
+//char topicRoot[] = "try/table_7/";
 char clientID[] = "voice01";
 
-char topicA[] = "try/table_7/random";
-// last time the client sent a message, in ms:
-long lastTimeSentA = 0;
-// message sending interval:
-int intervalA = 10000;
+// define a new type that is a function pointer
+typedef String (*messsage_function)(void);
 
-char topicB[] = "try/table_7/scales";
-// last time the client sent a message, in ms:
-long lastTimeSentB = 0;
-// message sending interval:
-int intervalB = 3000;
+struct MQTT_Object {
+  long lastTimeSent;
+  int interval;
+  messsage_function getMessage;
+  char tag[];
+};
 
-char topicC[] = "try/table_7/poem";
-// last time the client sent a message, in ms:
-long lastTimeSentC = 0;
-// message sending interval:
-int intervalC = 11000;
+void sendMQTTObject(MQTT_Object* mqtto) {
+    if (millis() - mqtto->lastTimeSent > mqtto->interval) {
+    // start a new message on the topic:
+    mqttClient.beginMessage(mqtto->tag);
+    // add a random number as a numeric string (print(), not write()):
+    mqttClient.print(mqtto->getMessage());
+    mqttClient.endMessage();
+    mqtto->lastTimeSent = millis();
+  }
+}
+
+//-------------------------------------   RANDOM MESSAGE
+String randomMessage() {
+  return String(random(127));
+}
+
+MQTT_Object randomMessageObject = {
+  .lastTimeSent = 0,
+  .interval = 5000,
+  .getMessage = randomMessage,
+  {.tag = "try/table_7/random"}
+};
+
+//-------------------------------------   STEPPING TONE
+int incrementTone;
+int nextToneStep;
+int incrementToneMax = 127;
+int incrementToneMin = 0;
+
+String scaleToneMessage() {
+
+    //Serial.print(incrementTone);
+    incrementTone = incrementTone + nextToneStep;
+
+    if (incrementTone >= incrementToneMax) {
+      nextToneStep = -1;
+    } else if (incrementTone <= incrementToneMin) {
+      nextToneStep = 1;
+    }
+    return String(incrementTone);
+
+}
+
+MQTT_Object scaleToneMessageObject = {
+  .lastTimeSent = 0,
+  .interval = 3000,
+  .getMessage = scaleToneMessage,
+   {.tag = "try/table_7/scale"}
+};
+
+//-------------------------------------   POEM
 
 const int lineLengthOfPoem = 4;
 String lines[lineLengthOfPoem] = { "The lamp once out", "Cool stars enter", "The window frame.", "- Natsume Soseki" };
 int lineInterval[lineLengthOfPoem] = { 10000, 5000, 7000, 50000 };
 int whichLine = 0;
 
+void updatePoemLine() {
+      whichLine = whichLine + 1;
+      if (whichLine > (lineLengthOfPoem -1) ) {
+      whichLine = 0;
+    }
+}
 
-int incrementTone = 0;
-int incrementToneMax = 127;
-int incrementToneMin = 0;
-int nextToneStep = 1;
+int updatePoemLineInterval(MQTT_Object* mqtto) {
+  mqtto->interval = lineInterval[whichLine];
+}
 
+String poemMessage() {
+    return lines[whichLine];
+}
+
+MQTT_Object poemMessageObject = {
+  .lastTimeSent = 0,
+  .interval = lineInterval[0],
+  .getMessage = poemMessage,
+   {.tag = "try/table_7/poem"}
+};
+
+
+
+//----------------------------------------------------   SETUP
 void setup() {
   // initialize serial:
   Serial.begin(9600);
@@ -93,6 +155,8 @@ void setup() {
   Serial.println("connected to broker");
 }
 
+
+//----------------------------------------------------   LOOP
 void loop() {
   // if not connected to the broker, try to connect:
   if (!mqttClient.connected()) {
@@ -100,54 +164,19 @@ void loop() {
     connectToBroker();
   }
 
-  // once every interval, send a message:
-  if (millis() - lastTimeSentA > intervalA) {
-    // start a new message on the topic:
-    mqttClient.beginMessage(topicA);
-    // add a random number as a numeric string (print(), not write()):
-    mqttClient.print(random(127));
-    //readVoice();
-    //Serial.println(myVoice);
-    // send the message:
-    mqttClient.endMessage();
-    lastTimeSentA = millis();
-  }
+  sendMQTTObject(&randomMessageObject);
+  sendMQTTObject(&scaleToneMessageObject);
 
-    if (millis() - lastTimeSentB > intervalB) {
-    // start a new message on the topic:
-    mqttClient.beginMessage(topicB);
-    // add a random number as a numeric string (print(), not write()):
-    mqttClient.print(incrementTone);
-    //Serial.print(incrementTone);
-    incrementTone = incrementTone + nextToneStep;
-    if (incrementTone >= incrementToneMax) {
-      nextToneStep = -1;
-    } else if (incrementTone <= incrementToneMin) {
-      nextToneStep = 1;
-    }
-    // send the message:
-    mqttClient.endMessage();
-    lastTimeSentB = millis();
-  }
-
-
-      if (millis() - lastTimeSentC > lineInterval[whichLine]) {
-    // start a new message on the topic:
-    mqttClient.beginMessage(topicC);
-    // add a random number as a numeric string (print(), not write()):
-    mqttClient.print(lines[whichLine]);
-    Serial.println(lines[whichLine]);
-     whichLine = whichLine + 1;
-    if (whichLine > (lineLengthOfPoem -1) ) {
-      whichLine = 0;
-    }
-
-    // send the message:
-    mqttClient.endMessage();
-    lastTimeSentC = millis();
-  }
+  updatePoemLine();
+  updatePoemLineInterval(&poemMessageObject);
+  sendMQTTObject(&poemMessageObject);
 
 }
+
+//----------------------------------------------------   END LOOP
+
+
+//-------------------------------------   connectToBroker()
 
 boolean connectToBroker() {
   // if the MQTT client is not connected:
