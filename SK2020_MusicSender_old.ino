@@ -12,8 +12,8 @@
   #define SECRET_MQTT_PASS "" // broker password
 
 
-  Edited 2020 09 25 
-  Sketching in Hardware 
+  Edited 2020 09 25
+  Sketching in Hardware
   by Carlyn Maw
 
   New code sends various types of messages.
@@ -22,7 +22,6 @@
 #include <WiFiNINA.h>
 #include <ArduinoMqttClient.h>
 #include "arduino_secrets.h"
-#include "HardwareHandler.h"
 
 // initialize WiFi connection:
 WiFiClient wifi;
@@ -55,7 +54,73 @@ void sendMQTTObject(MQTT_Object* mqtto) {
   }
 }
 
+//-------------------------------------   RANDOM MESSAGE
+String randomMessage() {
+  return String(random(127));
+}
 
+MQTT_Object randomMessageObject = {
+  .lastTimeSent = 0,
+  .interval = 5000,
+  .getMessage = randomMessage,
+  {.tag = "try/table_7/random"}
+};
+
+//-------------------------------------   STEPPING TONE
+int incrementTone;
+int nextToneStep;
+int incrementToneMax = 127;
+int incrementToneMin = 0;
+
+String scaleToneMessage() {
+
+    //Serial.print(incrementTone);
+    incrementTone = incrementTone + nextToneStep;
+
+    if (incrementTone >= incrementToneMax) {
+      nextToneStep = -1;
+    } else if (incrementTone <= incrementToneMin) {
+      nextToneStep = 1;
+    }
+    return String(incrementTone);
+
+}
+
+MQTT_Object scaleToneMessageObject = {
+  .lastTimeSent = 0,
+  .interval = 3000,
+  .getMessage = scaleToneMessage,
+   {.tag = "try/table_7/scale"}
+};
+
+//-------------------------------------   POEM
+
+const int lineLengthOfPoem = 4;
+String lines[lineLengthOfPoem] = { "The lamp once out", "Cool stars enter", "The window frame.", "- Natsume Soseki" };
+int lineInterval[lineLengthOfPoem] = { 10000, 5000, 7000, 50000 };
+int whichLine = 0;
+
+void updatePoemLine() {
+      whichLine = whichLine + 1;
+      if (whichLine > (lineLengthOfPoem -1) ) {
+      whichLine = 0;
+    }
+}
+
+int updatePoemLineInterval(MQTT_Object* mqtto) {
+  mqtto->interval = lineInterval[whichLine];
+}
+
+String poemMessage() {
+    return lines[whichLine];
+}
+
+MQTT_Object poemMessageObject = {
+  .lastTimeSent = 0,
+  .interval = lineInterval[0],
+  .getMessage = poemMessage,
+   {.tag = "try/table_7/poem"}
+};
 
 //-------------------------------------   POTENTIOMETER, SIMPLE
 const int voiceSensor = 0;
@@ -75,8 +140,6 @@ MQTT_Object potMessageObject = {
 
 //----------------------------------------------------   SETUP
 void setup() {
-  pinMode(pushButton, INPUT);
-  
   // initialize serial:
   Serial.begin(9600);
   // wait for serial monitor to open:
@@ -109,33 +172,20 @@ void setup() {
 
 //----------------------------------------------------   LOOP
 void loop() {
-
-  //Read Binary Hardware 
-
-  //Read Analog Hardware
-
-  //Update Local World
-    if (buttonState == LOW) {
-      int newFolicleReading = readFolicle(folicle1);
-      Serial.print("Loop reading 1: ");
-      Serial.println(newFolicleReading);
-    }
-
-  //Update Remote World
   // if not connected to the broker, try to connect:
   if (!mqttClient.connected()) {
     Serial.println("reconnecting");
     connectToBroker();
   }
 
-//  sendMQTTObject(&randomMessageObject);
-//  sendMQTTObject(&scaleToneMessageObject);
-//      
-//  updatePoemLine();
-//  updatePoemLineInterval(&poemMessageObject);
-//  sendMQTTObject(&poemMessageObject);
+  sendMQTTObject(&randomMessageObject);
+  sendMQTTObject(&scaleToneMessageObject);
 
-//  sendMQTTObject(&potMessageObject);
+  updatePoemLine();
+  updatePoemLineInterval(&poemMessageObject);
+  sendMQTTObject(&poemMessageObject);
+
+  sendMQTTObject(&potMessageObject);
 
 }
 
