@@ -1,3 +1,4 @@
+#include "MQTT_MessagePackagerDefs.h"
 //-------------------------------------   STEPPING TONE
 int incrementTone;
 int nextToneStep;

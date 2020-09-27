@@ -1,3 +1,4 @@
+#include "MQTT_MessagePackagerDefs.h"
 //-------------------------------------   RANDOM MESSAGE
 String randomMessage() {
   return String(random(127));

@@ -1,3 +1,4 @@
+#include "MQTT_MessagePackagerDefs.h"
 //-------------------------------------   POEM
 
 const int lineLengthOfPoem = 4;
