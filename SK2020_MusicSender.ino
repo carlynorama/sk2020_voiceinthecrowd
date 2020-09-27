@@ -119,7 +119,12 @@ void loop() {
   //-------------------------------------  Update Local World
     if (buttonState == true) {
       printFolicleData();
+      Serial.println("------");
+      printFolicleAverage();
+      Serial.println(" ");
     }
+
+
 
   //-------------------------------------  Update Remote World
   // if not connected to the broker, try to connect:

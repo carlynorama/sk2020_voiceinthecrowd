@@ -35,9 +35,9 @@ int readFolicle(int folicle) {
 
   int val = analogRead(folicle);
   uint8_t reading = (uint8_t) (map(val, 0, 1023, 0, 127));
-//  if (Serial) {
-//    Serial.println(reading);
-//  }
+  //  if (Serial) {
+  //    Serial.println(reading);
+  //  }
   return reading;
 }
 
@@ -58,6 +58,24 @@ void printFolicleData() {
   }
 }
 
+float average (int nums[], int sizeOfArray) {
+  long sum = 0;
+  for (int i = 0 ; i < sizeOfArray ; i++) {
+    sum += nums[i];
+  }
+  return  ((float) sum) / sizeOfArray ;  // average will be fractional, so float may be appropriate.
+}
+
+float averageFolicleData() {
+  return average(folicleReadings, folicleCount);
+}
+
+void printFolicleAverage() {
+     if (Serial) {
+      Serial.print("Folicle Average: ");
+      Serial.println(averageFolicleData());
+    }
+}
 
 //String getValueForMessage() {
 //  int val = analogRead(nose);
